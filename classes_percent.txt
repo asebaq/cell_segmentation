@@ -1,0 +1,9 @@
+split='train'
+cell_percent=0.056404637446066795
+bg_percent=0.9435953625539332
+split='test'
+cell_percent=0.06807666526646719
+bg_percent=0.9319233347335328
+split='val'
+cell_percent=0.050815423028840484
+bg_percent=0.9491845769711595
