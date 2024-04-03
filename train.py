@@ -62,8 +62,7 @@ class CellModel(pl.LightningModule):
         
         # preprocessing parameteres for image
         # for image segmentation dice loss could be the best first choice
-        self.loss_fn = smp.losses.DiceLoss(
-            smp.losses.BINARY_MODE, from_logits=True)
+        self.loss_fn = smp.losses.DiceLoss(mode='multiclass', from_logits=True)
 
     def forward(self, image):
         # normalize image here
@@ -103,7 +102,7 @@ class CellModel(pl.LightningModule):
         # true negative 'pixels' for each image and class
         # these values will be aggregated in the end of an epoch
         tp, fp, fn, tn = smp.metrics.get_stats(
-            pred_mask.long(), mask.long(), num_classes=9, mode='multiclass')
+            pred_mask.long(), mask.long(), num_classes=2, mode='multiclass')
 
         return {
             'loss': loss,
@@ -233,9 +232,9 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
 
 
 if __name__ == '__main__':
-    base_dir = 'data/patches'
+    base_dir = os.path.join('data', 'Fluo-N3DH-SIM+_splitted')
     model_name = 'Unet'
-    model_encoder = 'densenet121'
+    model_encoder = 'resnet18'
     batch_size = 8
     load = False
     load_path = ''
