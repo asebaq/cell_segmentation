@@ -122,8 +122,7 @@ def train_test_val(images_paths, masks_paths, base_dir, val_sz=0.1, seed=17):
         copyfile(i, os.path.join(base_dir, 'test', 'images', os.path.basename(i)))
         copyfile(j, os.path.join(base_dir, 'test', 'masks', os.path.basename(j)))
 
-def main():
-    base_dir = './data/Fluo-N3DH-SIM+'
+def main(base_dir):
     
     images_dir = os.path.join(base_dir, '01')
     masks_dir = os.path.join(base_dir, '01_GT', 'SEG')
@@ -172,4 +171,6 @@ def main():
         
     
 if __name__ == '__main__':
-    main()
+    base_dir = os.path.join('data', 'Fluo-N3DH-SIM+')
+    base_dir = os.path.join('content', 'My Drive', '3D Segmentation', 'Fluo-N3DH-SIM+')
+    main(base_dir)

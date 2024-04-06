@@ -233,6 +233,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
 
 if __name__ == '__main__':
     base_dir = os.path.join('data', 'Fluo-N3DH-SIM+_splitted')
+    base_dir = os.path.join('content', 'My Drive', '3D Segmentation', 'Fluo-N3DH-SIM+_splitted')
     model_name = 'Unet'
     model_encoder = 'resnet18'
     batch_size = 8

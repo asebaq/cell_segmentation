@@ -45,6 +45,7 @@ def build_df(base_dir):
     return df
 
 if __name__ == '__main__':
-    base_dir = "./data/Fluo-N3DH-SIM+_splitted"
+    base_dir = os.path.join('data', 'Fluo-N3DH-SIM+_splitted')
+    base_dir = os.path.join('content', 'My Drive', '3D Segmentation', 'Fluo-N3DH-SIM+_splitted')
     build_df(base_dir)
     
