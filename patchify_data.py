@@ -172,5 +172,5 @@ def main(base_dir):
     
 if __name__ == '__main__':
     base_dir = os.path.join('data', 'Fluo-N3DH-SIM+')
-    base_dir = os.path.join('content', 'My Drive', '3D Segmentation', 'Fluo-N3DH-SIM+')
+    base_dir = os.path.join('content', 'MyDrive', 'Colab Notebooks', '3D Segmentation', 'Fluo-N3DH-SIM+')
     main(base_dir)

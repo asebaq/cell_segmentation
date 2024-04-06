@@ -62,7 +62,7 @@ class CellModel(pl.LightningModule):
         
         # preprocessing parameteres for image
         # for image segmentation dice loss could be the best first choice
-        self.loss_fn = smp.losses.DiceLoss(mode='multiclass', from_logits=True)
+        self.loss_fn = smp.losses.DiceLoss(mode='binary', from_logits=True)
 
     def forward(self, image):
         # normalize image here
@@ -166,7 +166,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
     # init train, val, test sets
     data_df = pd.read_csv(os.path.join(base_dir, 'data.csv'))
     train_dataset = CellDataset(data_df, 'train')
-    valid_dataset = CellDataset(data_df, 'valid')
+    valid_dataset = CellDataset(data_df, 'val')
     test_dataset = CellDataset(data_df, 'test')
 
     # It is a good practice to check datasets don`t intersects with each other
@@ -199,6 +199,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
         
     checkpoint_callback = ModelCheckpoint(
         monitor='valid_dataset_iou',
+        dirpath=base_dir,
         filename=model_name+'-'+model_encoder+'-epoch{epoch:03d}-{valid_dataset_iou:.4f}',
         save_top_k=2,
         mode='max',
@@ -233,7 +234,8 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
 
 if __name__ == '__main__':
     base_dir = os.path.join('data', 'Fluo-N3DH-SIM+_splitted')
-    base_dir = os.path.join('content', 'My Drive', '3D Segmentation', 'Fluo-N3DH-SIM+_splitted')
+    # base_dir = os.path.join('content', 'MyDrive', 'Colab Notebooks', '3D Segmentation', 'Fluo-N3DH-SIM+_splitted')
+    base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
     model_name = 'Unet'
     model_encoder = 'resnet18'
     batch_size = 8

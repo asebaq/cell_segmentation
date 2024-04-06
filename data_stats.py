@@ -13,7 +13,8 @@ import numpy as np
 
 
 def classes_percent(base_dir, split="train"):
-    masks = glob(os.path.join(base_dir, split, "masks", "*.tif"))
+    # masks = glob(os.path.join(base_dir, split, "masks", "*.tif"))
+    masks = glob(os.path.join(base_dir, split, "masks_patches", "*.tif"))
     bg = 0.0
     cell = 0.0
     for mask in masks:
@@ -67,6 +68,7 @@ def cal_mean_std():
 
 if __name__ == "__main__":
     base_dir = os.path.join('data', 'Fluo-N3DH-SIM+')
-    base_dir = os.path.join('content', 'My Drive', '3D Segmentation', 'Fluo-N3DH-SIM+')
+    # base_dir = os.path.join('content', 'My Drive', '3D Segmentation', 'Fluo-N3DH-SIM+')
+    base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
     for s in ['train', 'test', 'val']:
         classes_percent(base_dir, s)
