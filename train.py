@@ -42,9 +42,8 @@ class CellDataset(Dataset):
         msk_path = img_path.replace('image', 'mask')
         msk = io.imread(msk_path)
         msk = msk.astype(np.float32)
-        msk = torch.tensor(msk, dtype=torch.long)
-        msk = F.one_hot(msk, 2)
-        msk = msk.permute((3, 0, 1, 2))
+        msk = torch.tensor(msk)
+        msk = msk.unsqueeze(0)
 
         data = dict()
         data['image'] = img
@@ -102,7 +101,7 @@ class CellModel(pl.LightningModule):
         # true negative 'pixels' for each image and class
         # these values will be aggregated in the end of an epoch
         tp, fp, fn, tn = smp.metrics.get_stats(
-            pred_mask.long(), mask.long(), num_classes=2, mode='multiclass')
+            pred_mask.long(), mask.long(), mode='binary')
 
         return {
             'loss': loss,
@@ -189,8 +188,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
 
 
     # Model
-    model = CellModel(model_name, model_encoder,
-                          in_channels=1, out_classes=2)
+    model = CellModel(model_name, model_encoder, 1, 1)
 
     if load:
         checkpoint = torch.load(load_path)
