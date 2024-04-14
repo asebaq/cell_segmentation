@@ -21,24 +21,27 @@ def classes_percent(base_dir, split="train"):
         msk = io.imread(mask)
         cell += (msk > 0).sum()
         bg += (msk == 0).sum()
-        
+
     cell_percent = cell / (len(masks) * np.prod(msk.shape))
     bg_percent = bg / (len(masks) * np.prod(msk.shape))
-    
+
     print(f"{split=}")
     print(f"{cell_percent=}")
     print(f"{bg_percent=}")
-    
+
+
 def cal_mean_std():
     # Define the transformations
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-    ])
+    transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+        ]
+    )
 
     # Create the custom dataset
-    base_dir = 'data/patches'
-    data_df = pd.read_csv(os.path.join(base_dir, 'data.csv'))
-    train_dataset = CellDataset(data_df, 'train')
+    base_dir = "data/patches"
+    data_df = pd.read_csv(os.path.join(base_dir, "data.csv"))
+    train_dataset = CellDataset(data_df, "train")
 
     # Create a DataLoader with tqdm
     dataloader = DataLoader(train_dataset, batch_size=1, shuffle=False)
@@ -62,12 +65,13 @@ def cal_mean_std():
     std = std.tolist()
 
     # Save mean and std to JSON file
-    stats = {'mean': mean, 'std': std}
-    with open('mean_std.json', 'w') as json_file:
+    stats = {"mean": mean, "std": std}
+    with open("mean_std.json", "w") as json_file:
         json.dump(stats, json_file)
 
+
 if __name__ == "__main__":
-    base_dir = os.path.join('data', 'Fluo-N3DH-SIM+')
+    base_dir = os.path.join("data", "Fluo-N3DH-SIM+")
     base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
-    for s in ['train', 'test', 'val']:
+    for s in ["train", "test", "val"]:
         classes_percent(base_dir, s)

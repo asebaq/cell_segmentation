@@ -13,6 +13,7 @@ from skimage import io
 from pprint import pprint
 
 import ssl
+
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
@@ -27,7 +28,6 @@ class CellDataset(Dataset):
     def __len__(self):
         return len(self.df)
 
-
     def __getitem__(self, index):
         # Read image
         img_path = self.images_paths[index]
@@ -39,29 +39,42 @@ class CellDataset(Dataset):
         img = img.unsqueeze(0)
 
         # Read mask
-        msk_path = img_path.replace('image', 'mask')
+        msk_path = img_path.replace("image", "mask")
         msk = io.imread(msk_path)
         msk = msk.astype(np.float32)
         msk = torch.tensor(msk)
         msk = msk.unsqueeze(0)
 
         data = dict()
-        data['image'] = img
-        data['mask'] = msk
+        data["image"] = img
+        data["mask"] = msk
         return data
 
 
 # Model class
 class CellModel(pl.LightningModule):
-    def __init__(self, arch, encoder_name, in_channels, out_classes, **kwargs):
+    def __init__(
+        self,
+        arch,
+        encoder_name,
+        in_channels,
+        out_classes,
+        activation="sigmoid",
+        **kwargs,
+    ):
         super().__init__()
         self.model = smp.create_model(
-            arch, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes, **kwargs
+            arch,
+            encoder_name=encoder_name,
+            in_channels=in_channels,
+            classes=out_classes,
+            activation=activation,
+            **kwargs,
         )
-        
+
         # preprocessing parameteres for image
         # for image segmentation dice loss could be the best first choice
-        self.loss_fn = smp.losses.DiceLoss(mode='binary', from_logits=True)
+        self.loss_fn = smp.losses.DiceLoss(mode="binary", from_logits=True)
 
     def forward(self, image):
         # normalize image here
@@ -69,8 +82,7 @@ class CellModel(pl.LightningModule):
         return mask
 
     def shared_step(self, batch, stage):
-
-        image = batch['image']
+        image = batch["image"]
 
         # Check that image dimensions are divisible by 32,
         # encoder and decoder connected by `skip connections` and usually encoder have 5 stages of
@@ -80,7 +92,7 @@ class CellModel(pl.LightningModule):
         h, w = image.shape[-2:]
         assert h % 32 == 0 and w % 32 == 0
 
-        mask = batch['mask']
+        mask = batch["mask"]
         # Check that mask values in between 0 and 1, NOT 0 and 255
         assert mask.max() <= 1.0 and mask.min() >= 0
 
@@ -91,8 +103,8 @@ class CellModel(pl.LightningModule):
         # Lets compute metrics for some threshold
         # first convert mask values to probabilities, then
         # apply thresholding
-        prob_mask = logits_mask.sigmoid()
-        pred_mask = (prob_mask > 0.5).float()
+        # prob_mask = logits_mask.sigmoid()
+        pred_mask = (logits_mask > 0.5).float()
 
         # We will compute IoU metric by two ways
         #   1. dataset-wise
@@ -101,108 +113,112 @@ class CellModel(pl.LightningModule):
         # true negative 'pixels' for each image and class
         # these values will be aggregated in the end of an epoch
         tp, fp, fn, tn = smp.metrics.get_stats(
-            pred_mask.long(), mask.long(), mode='binary')
+            pred_mask.long(), mask.long(), mode="binary"
+        )
 
         return {
-            'loss': loss,
-            'tp': tp,
-            'fp': fp,
-            'fn': fn,
-            'tn': tn,
+            "loss": loss,
+            "tp": tp,
+            "fp": fp,
+            "fn": fn,
+            "tn": tn,
         }
 
     def shared_epoch_end(self, outputs, stage):
         # aggregate step metics
-        tp = torch.cat([x['tp'] for x in outputs])
-        fp = torch.cat([x['fp'] for x in outputs])
-        fn = torch.cat([x['fn'] for x in outputs])
-        tn = torch.cat([x['tn'] for x in outputs])
+        tp = torch.cat([x["tp"] for x in outputs])
+        fp = torch.cat([x["fp"] for x in outputs])
+        fn = torch.cat([x["fn"] for x in outputs])
+        tn = torch.cat([x["tn"] for x in outputs])
 
         # per image IoU means that we first calculate IoU score for each image
         # and then compute mean over these scores
         per_image_iou = smp.metrics.iou_score(
-            tp, fp, fn, tn, reduction='micro-imagewise')
+            tp, fp, fn, tn, reduction="micro-imagewise"
+        )
 
         # dataset IoU means that we aggregate intersection and union over whole dataset
         # and then compute IoU score. The difference between dataset_iou and per_image_iou scores
         # in this particular case will not be much, however for dataset
         # with 'empty' images (images without target class) a large gap could be observed.
         # Empty images influence a lot on per_image_iou and much less on dataset_iou.
-        dataset_iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction='micro')
+        dataset_iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
 
         metrics = {
-            f'{stage}_per_image_iou': per_image_iou,
-            f'{stage}_dataset_iou': dataset_iou,
+            f"{stage}_per_image_iou": per_image_iou,
+            f"{stage}_dataset_iou": dataset_iou,
         }
 
         self.log_dict(metrics, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
-        return self.shared_step(batch, 'train')
+        return self.shared_step(batch, "train")
 
     def training_epoch_end(self, outputs):
-        return self.shared_epoch_end(outputs, 'train')
+        return self.shared_epoch_end(outputs, "train")
 
     def validation_step(self, batch, batch_idx):
-        return self.shared_step(batch, 'valid')
+        return self.shared_step(batch, "valid")
 
     def validation_epoch_end(self, outputs):
-        return self.shared_epoch_end(outputs, 'valid')
+        return self.shared_epoch_end(outputs, "valid")
 
     def test_step(self, batch, batch_idx):
-        return self.shared_step(batch, 'test')
+        return self.shared_step(batch, "test")
 
     def test_epoch_end(self, outputs):
-        return self.shared_epoch_end(outputs, 'test')
+        return self.shared_epoch_end(outputs, "test")
 
     def configure_optimizers(self):
         return torch.optim.AdamW(self.parameters(), lr=1e-5)
 
 
-
-
-def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=False):
+def main(base_dir, model_name, model_encoder, batch_size, load_path="", load=False):
     # init train, val, test sets
-    data_df = pd.read_csv(os.path.join(base_dir, 'data.csv'))
-    train_dataset = CellDataset(data_df, 'train')
-    valid_dataset = CellDataset(data_df, 'val')
-    test_dataset = CellDataset(data_df, 'test')
+    data_df = pd.read_csv(os.path.join(base_dir, "data.csv"))
+    train_dataset = CellDataset(data_df, "train")
+    valid_dataset = CellDataset(data_df, "val")
+    test_dataset = CellDataset(data_df, "test")
 
     # It is a good practice to check datasets don`t intersects with each other
     assert set(test_dataset.filenames).isdisjoint(set(train_dataset.filenames))
     assert set(test_dataset.filenames).isdisjoint(set(valid_dataset.filenames))
-    assert set(train_dataset.filenames).isdisjoint(
-        set(valid_dataset.filenames))
+    assert set(train_dataset.filenames).isdisjoint(set(valid_dataset.filenames))
 
-    print(f'Train size: {len(train_dataset)}')
-    print(f'Valid size: {len(valid_dataset)}')
-    print(f'Test size: {len(test_dataset)}')
+    print(f"Train size: {len(train_dataset)}")
+    print(f"Valid size: {len(valid_dataset)}")
+    print(f"Test size: {len(test_dataset)}")
 
     n_cpu = os.cpu_count()
     train_dataloader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=n_cpu)
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=n_cpu
+    )
     valid_dataloader = DataLoader(
-        valid_dataset, batch_size=batch_size, shuffle=False, num_workers=n_cpu)
+        valid_dataset, batch_size=batch_size, shuffle=False, num_workers=n_cpu
+    )
     test_dataloader = DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=False, num_workers=n_cpu)
-
+        test_dataset, batch_size=batch_size, shuffle=False, num_workers=n_cpu
+    )
 
     # Model
     model = CellModel(model_name, model_encoder, 1, 1)
 
     if load:
         checkpoint = torch.load(load_path)
-        model.load_state_dict(checkpoint['state_dict'])
-        print('Model loaded successfully')
-        
+        model.load_state_dict(checkpoint["state_dict"])
+        print("Model loaded successfully")
+
     checkpoint_callback = ModelCheckpoint(
-        monitor='valid_dataset_iou',
-        filename=model_name+'-'+model_encoder+'-epoch{epoch:03d}-{valid_dataset_iou:.4f}',
+        monitor="valid_dataset_iou",
+        filename=model_name
+        + "-"
+        + model_encoder
+        + "-epoch{epoch:03d}-{valid_dataset_iou:.4f}",
         save_top_k=2,
-        mode='max',
-        auto_insert_metric_name=False
-        )
-    
+        mode="max",
+        auto_insert_metric_name=False,
+    )
+
     # Training
     trainer = pl.Trainer(
         gpus=1,
@@ -218,23 +234,20 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
 
     # Validation and test metrics
     # run validation dataset
-    valid_metrics = trainer.validate(
-        model, dataloaders=valid_dataloader, verbose=False)
+    valid_metrics = trainer.validate(model, dataloaders=valid_dataloader, verbose=False)
     pprint(valid_metrics)
 
     # run test dataset
-    test_metrics = trainer.test(
-        model, dataloaders=test_dataloader, verbose=False)
+    test_metrics = trainer.test(model, dataloaders=test_dataloader, verbose=False)
     pprint(test_metrics)
 
 
-
-if __name__ == '__main__':
-    base_dir = os.path.join('data', 'Fluo-N3DH-SIM+_splitted')
+if __name__ == "__main__":
+    base_dir = os.path.join("data", "Fluo-N3DH-SIM+_splitted")
     # base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
-    model_name = 'Unet'
-    model_encoder = 'resnet18'
+    model_name = "Unet"
+    model_encoder = "resnet18"
     batch_size = 8
     load = False
-    load_path = ''
+    load_path = ""
     main(base_dir, model_name, model_encoder, batch_size, load_path, load)
