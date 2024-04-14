@@ -199,7 +199,6 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
         
     checkpoint_callback = ModelCheckpoint(
         monitor='valid_dataset_iou',
-        dirpath=base_dir,
         filename=model_name+'-'+model_encoder+'-epoch{epoch:03d}-{valid_dataset_iou:.4f}',
         save_top_k=2,
         mode='max',
@@ -209,7 +208,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
     # Training
     trainer = pl.Trainer(
         gpus=1,
-        max_epochs=100,
+        max_epochs=10,
         callbacks=[checkpoint_callback],
     )
 
@@ -234,8 +233,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path='', load=Fal
 
 if __name__ == '__main__':
     base_dir = os.path.join('data', 'Fluo-N3DH-SIM+_splitted')
-    # base_dir = os.path.join('content', 'MyDrive', 'Colab Notebooks', '3D Segmentation', 'Fluo-N3DH-SIM+_splitted')
-    base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
+    # base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
     model_name = 'Unet'
     model_encoder = 'resnet18'
     batch_size = 8

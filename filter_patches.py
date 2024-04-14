@@ -19,7 +19,5 @@ def main(base_dir):
         
 if __name__ == '__main__':
     base_dir = os.path.join('data', 'Fluo-N3DH-SIM+_splitted_filtered')
-    # base_dir = os.path.join('/', 'content', 'drive', 'MyDrive', 'Colab Notebooks', '3D Segmentation', 'Fluo-N3DH-SIM+_splitted_filtered')
     base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
-    # print(os.path.isdir(base_dir))
     main(base_dir)

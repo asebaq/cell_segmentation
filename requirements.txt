@@ -2,15 +2,6 @@ numpy
 scikit-learn
 scikit-image
 matplotlib
-
-tensorflow[and-cuda]
-keras==2.15.0
-keras_applications==1.0.8
-classification_models_3D==1.0.10
-efficientnet-3D
-segmentation_models_3D
-
-patchify
 jupyter
 tqdm
 imagecodecs
@@ -20,3 +11,7 @@ opencv-python
 torch==2.2.1 
 torchvision==0.17.1 
 segmentation_models_pytorch_3d
+
+pytorch_lightning==1.9.5
+pandas
+split-folders[full]
