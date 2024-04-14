@@ -103,7 +103,6 @@ class CellModel(pl.LightningModule):
         # Lets compute metrics for some threshold
         # first convert mask values to probabilities, then
         # apply thresholding
-        # prob_mask = logits_mask.sigmoid()
         pred_mask = (logits_mask > 0.5).float()
 
         # We will compute IoU metric by two ways
@@ -209,6 +208,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path="", load=Fal
         print("Model loaded successfully")
 
     checkpoint_callback = ModelCheckpoint(
+        dirpath=base_dir,
         monitor="valid_dataset_iou",
         filename=model_name
         + "-"
@@ -222,7 +222,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path="", load=Fal
     # Training
     trainer = pl.Trainer(
         gpus=1,
-        max_epochs=10,
+        max_epochs=100,
         callbacks=[checkpoint_callback],
     )
 
@@ -244,7 +244,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path="", load=Fal
 
 if __name__ == "__main__":
     base_dir = os.path.join("data", "Fluo-N3DH-SIM+_splitted")
-    # base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
+    base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
     model_name = "Unet"
     model_encoder = "resnet18"
     batch_size = 8
