@@ -13,3 +13,4 @@
 
 ## X-Unet
  - [ ] Train in Google Colab
+ - [ ] Add block for instance segmentation in the archeticture
