@@ -51,7 +51,7 @@ if __name__ == "__main__":
     model_name = "Unet"
     model_encoder = "resnet18"
     model_path = (
-        "lightning_logs/version_0/checkpoints/Unet-resnet18-epoch009-0.8143.ckpt"
+        "lightning_logs/version_1/checkpoints/Unet-resnet18-epoch080-0.9250.ckpt"
     )
     img_path = "data/Fluo-N3DH-SIM+/02/t007.tif"
     main(model_name, model_encoder, model_path, img_path)

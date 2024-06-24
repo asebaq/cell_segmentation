@@ -2,7 +2,6 @@ numpy
 scikit-learn
 scikit-image
 matplotlib
-jupyter
 tqdm
 imagecodecs
 opencv-python
@@ -15,3 +14,11 @@ segmentation_models_pytorch_3d
 pytorch_lightning==1.9.5
 pandas
 split-folders[full]
+
+beartype
+einops
+ipykernel
+x-unet
+
+stardist
+tensorflow[and-cuda]

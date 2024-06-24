@@ -517,7 +517,9 @@ cython_debug/
 
 # Files
 *.h5
-data/
+*.zip
+data*/
 venv_pt/
 wandb/
 lightning_logs/
+models/
