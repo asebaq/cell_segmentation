@@ -519,7 +519,8 @@ cython_debug/
 *.h5
 *.zip
 data*/
-venv_pt/
+!data/.gitkeep
+
 wandb/
 lightning_logs/
 models/

@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import random
+from pathlib import Path
 
 seed = 17
 random.seed(seed)
@@ -113,96 +114,82 @@ def train_test_val(images_paths, masks_paths, base_dir, val_sz=0.1, seed=17):
     assert set(image_paths_train).isdisjoint(set(image_paths_val))
     assert set(image_paths_train).isdisjoint(set(image_paths_test))
 
-    base_dir += "_splitted"
     for i in ["train", "val", "test"]:
-        os.makedirs(os.path.join(base_dir, i, "images"), exist_ok=True)
-        os.makedirs(os.path.join(base_dir, i, "masks"), exist_ok=True)
+        (base_dir / i / "images").mkdir(parents=True, exist_ok=True)
+        (base_dir / i / "masks").mkdir(parents=True, exist_ok=True)
 
     for i, j in zip(image_paths_train, mask_paths_train):
-        copyfile(i, os.path.join(base_dir, "train", "images", os.path.basename(i)))
-        copyfile(j, os.path.join(base_dir, "train", "masks", os.path.basename(j)))
+        copyfile(i, base_dir / "train" / "images" / os.path.basename(i))
+        copyfile(j, base_dir / "train" / "masks" / os.path.basename(j))
 
     for i, j in zip(image_paths_val, mask_paths_val):
-        copyfile(i, os.path.join(base_dir, "val", "images", os.path.basename(i)))
-        copyfile(j, os.path.join(base_dir, "val", "masks", os.path.basename(j)))
+        copyfile(i, base_dir / "val" / "images" / os.path.basename(i))
+        copyfile(j, base_dir / "val" / "masks" / os.path.basename(j))
 
     for i, j in zip(image_paths_test, mask_paths_test):
-        copyfile(i, os.path.join(base_dir, "test", "images", os.path.basename(i)))
-        copyfile(j, os.path.join(base_dir, "test", "masks", os.path.basename(j)))
+        copyfile(i, base_dir / "test" / "images" / os.path.basename(i))
+        copyfile(j, base_dir / "test" / "masks" / os.path.basename(j))
 
 
 def main(base_dir):
-    images_dir = os.path.join(base_dir, "01")
-    masks_dir = os.path.join(base_dir, "01_GT", "SEG")
+    parts = ["01", "02"]
+    splitted_dir = Path(str(base_dir) + "_splitted")
+    for part in parts:
+        images_dir = base_dir / part
+        masks_dir = base_dir / f"{part}_GT" / "SEG"
 
-    images_paths = glob(os.path.join(images_dir, "*.tif"))
-    images_paths.sort()
-    masks_paths = glob(os.path.join(masks_dir, "*.tif"))
-    masks_paths.sort()
+        images_paths = images_dir.glob("*.tif")
+        images_paths = sorted(list(images_paths))
+        masks_paths = masks_dir.glob("*.tif")
+        masks_paths = sorted(list(masks_paths))
 
-    train_test_val(images_paths, masks_paths, base_dir)
+        train_test_val(images_paths, masks_paths, splitted_dir)
 
-    patch_size = (32, 128, 128)
-    for split in ["train", "val", "test"]:
-        images_paths = glob(
-            os.path.join(base_dir + "_splitted", split, "images", "*.tif")
-        )
-        images_paths.sort()
-        masks_paths = glob(
-            os.path.join(base_dir + "_splitted", split, "masks", "*.tif")
-        )
-        masks_paths.sort()
+        patch_size = (32, 128, 128)
+        for split in ["train", "val", "test"]:
+            images_paths = (splitted_dir / split / "images").glob("*.tif")
+            images_paths = sorted(list(images_paths))
+            masks_paths = (splitted_dir / split / "masks").glob("*.tif")
+            masks_paths = sorted(list(masks_paths))
+            (splitted_dir / split / "images_patches").mkdir(exist_ok=True)
+            (splitted_dir / split / "masks_patches").mkdir(exist_ok=True)
 
-        os.makedirs(
-            os.path.join(base_dir + "_splitted", split, "images_patches"), exist_ok=True
-        )
-        os.makedirs(
-            os.path.join(base_dir + "_splitted", split, "masks_patches"), exist_ok=True
-        )
+            for i in tqdm(range(len(images_paths))):
+                idx = images_paths[i].stem[-3:]
+                assert idx == masks_paths[i].stem[-3:]
 
-        for i in tqdm(range(len(images_paths))):
-            idx = images_paths[i][-7:-4]
-            assert idx == masks_paths[i][-7:-4]
+                image = io.imread(images_paths[i])
+                mask = io.imread(masks_paths[i])
+                mask = (mask > 0).astype(mask.dtype)
 
-            image = io.imread(images_paths[i])
-            mask = io.imread(masks_paths[i])
-            mask = (mask > 0).astype(mask.dtype)
+                image_patches = cut_3d_images(image, patch_size)
+                # image_rec = merge_image_patches(image_patches, image.shape, patch_size)
+                # print(np.allclose(image, image_rec))
+                # print(np.array_equal(image, image_rec))
+                for j in range(image_patches.shape[0]):
+                    io.imsave(
+                        splitted_dir
+                        / split
+                        / "images_patches"
+                        / f"image_{part}_{idx}_{i}_{j}.tif",
+                        image_patches[j],
+                    )
 
-            image_patches = cut_3d_images(image, patch_size)
-            # image_rec = merge_image_patches(image_patches, image.shape, patch_size)
-            # print(np.allclose(image, image_rec))
-            # print(np.array_equal(image, image_rec))
-            for j in range(image_patches.shape[0]):
-                io.imsave(
-                    os.path.join(
-                        base_dir + "_splitted",
-                        split,
-                        "images_patches",
-                        f"image_{idx}_{i}_{j}.tif",
-                    ),
-                    image_patches[j],
-                )
+                mask_patches = cut_3d_images(mask, patch_size)
+                for j in range(mask_patches.shape[0]):
+                    io.imsave(
+                        splitted_dir
+                        / split
+                        / "masks_patches"
+                        / f"mask_{part}_{idx}_{i}_{j}.tif",
+                        mask_patches[j],
+                    )
 
-            mask_patches = cut_3d_images(mask, patch_size)
-            for j in range(mask_patches.shape[0]):
-                io.imsave(
-                    os.path.join(
-                        base_dir + "_splitted",
-                        split,
-                        "masks_patches",
-                        f"mask_{idx}_{i}_{j}.tif",
-                    ),
-                    mask_patches[j],
-                )
-
-            # print(image_patches.shape)
-            # print(mask_patches.shape)
-            # return
+                # print(image_patches.shape)
+                # print(mask_patches.shape)
+                # return
 
 
 if __name__ == "__main__":
-    base_dir = os.path.join("data", "Fluo-N3DH-SIM+")
-    base_dir = os.path.join(
-        "content", "MyDrive", "Colab Notebooks", "3D Segmentation", "Fluo-N3DH-SIM+"
-    )
+    base_dir = Path("data") / "Fluo-N3DH-SIM+"
     main(base_dir)
