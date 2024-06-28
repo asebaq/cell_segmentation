@@ -20,6 +20,7 @@
    ```
 2. Setup requirements
    ```sh
+    cd cell_segmentation
     pip install -r requirements.txt
    ```
 3. Split the data
@@ -31,7 +32,7 @@
 ### Segmentation Models 3D
 - [x] Combine folder `1` abd `2` of Fluo-N3DH-SIM+ data
 - [x] Shuffling and splitting the data into train, val and test
-- [ ] Adjust the inference script for multiple images instead for one image
+- [x] Adjust the inference script for multiple images instead for one image
 - [ ] Use other datasets such as celegans and drosphilla datasets
 - [ ] Add the archimedies optimizer to hypertuning the hyperparameters
 - [ ] Try processing the ground truth into three classes(borders, cell, and background) multiclass segmentation. (Optional)

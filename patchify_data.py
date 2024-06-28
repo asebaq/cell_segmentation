@@ -1,19 +1,18 @@
 import os
-from tqdm import tqdm
-from glob import glob
-from skimage import io
+import random
+import warnings
 import numpy as np
+from tqdm import tqdm
+from skimage import io
+from pathlib import Path
+from shutil import copyfile
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-import random
-from pathlib import Path
 
 seed = 17
 random.seed(seed)
-import warnings
 
 warnings.filterwarnings("ignore")
-from shutil import copyfile
 
 
 def merge_image_patches(image_patches, volume_shape, patch_size):

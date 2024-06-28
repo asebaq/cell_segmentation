@@ -17,28 +17,28 @@ class CellModel(pl.LightningModule):
         **kwargs,
     ):
         super().__init__()
-        # self.model = smp.create_model(
-        #     arch,
-        #     encoder_name=encoder_name,
-        #     in_channels=in_channels,
-        #     classes=out_classes,
-        #     activation=activation,
-        #     **kwargs,
-        # )
-
-        self.model = XUnet(
-            dim=64,
-            # set this to greater than 1
-            frame_kernel_size=3,
-            channels=in_channels,
-            out_dim=out_classes,
-            dim_mults=(1, 2, 2, 4),
-            # nested unet depths, from unet-squared paper
-            # nested_unet_depths=(5, 4, 2, 1),
-            # whether to consolidate outputs from all upsample blocks, used in unet-squared paper
-            consolidate_upsample_fmaps=True,
-            weight_standardize=True,
+        self.model = smp.create_model(
+            arch,
+            encoder_name=encoder_name,
+            in_channels=in_channels,
+            classes=out_classes,
+            activation=activation,
+            **kwargs,
         )
+
+        # self.model = XUnet(
+        #     dim=64,
+        #     # set this to greater than 1
+        #     frame_kernel_size=3,
+        #     channels=in_channels,
+        #     out_dim=out_classes,
+        #     dim_mults=(1, 2, 2, 4),
+        #     # nested unet depths, from unet-squared paper
+        #     # nested_unet_depths=(5, 4, 2, 1),
+        #     # whether to consolidate outputs from all upsample blocks, used in unet-squared paper
+        #     consolidate_upsample_fmaps=True,
+        #     weight_standardize=True,
+        # )
 
         # preprocessing parameteres for image
         # for image segmentation dice loss could be the best first choice
