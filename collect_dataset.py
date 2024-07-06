@@ -2,7 +2,7 @@ import os
 import random
 import pandas as pd
 from glob import glob
-
+from pathlib import Path
 
 seed = 17
 random.seed(seed)
@@ -46,6 +46,5 @@ def build_df(base_dir):
 
 
 if __name__ == "__main__":
-    base_dir = os.path.join("data", "Fluo-N3DH-SIM+_splitted")
-    base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
+    base_dir = Path("data") / "Fluo-N3DH-SIM+_splitted"
     build_df(base_dir)
