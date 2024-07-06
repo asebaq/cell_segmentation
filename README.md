@@ -27,15 +27,19 @@
    ```
     python patchify_data.py
    ```
+4. Collect the data in CSV file
+   ```
+    python collect_dataset.py
+   ```
 
 ## TODOs
 ### Segmentation Models 3D
 - [x] Combine folder `1` abd `2` of Fluo-N3DH-SIM+ data
 - [x] Shuffling and splitting the data into train, val and test
 - [x] Adjust the inference script for multiple images instead for one image
-- [ ] Use other datasets such as celegans and drosphilla datasets
 - [ ] Add the archimedies optimizer to hypertuning the hyperparameters
 - [ ] Try processing the ground truth into three classes(borders, cell, and background) multiclass segmentation. (Optional)
+- [ ] Use other datasets such as celegans and drosphilla datasets
 - [ ] Modify model architecture for more accuracy
 - [ ] Add post processing to convert sementatic segmentation results into instance segmentation
 - [ ] Compare with 3D object instance segmentation models such as cellpose, stardist, panopatic masckrcnn, detectron, and nnunet
