@@ -1,20 +1,19 @@
-from train import CellDataset
-
-import torch
-from torch.utils.data import DataLoader
-from torchvision import transforms
-from tqdm import tqdm
 import json
-import pandas as pd
-import os
-from glob import glob
-from skimage import io
+import torch
 import numpy as np
+import pandas as pd
+from tqdm import tqdm
+from skimage import io
+from pathlib import Path
+from torchvision import transforms
+from torch.utils.data import DataLoader
+
+from train import CellDataset
 
 
 def classes_percent(base_dir, split="train"):
-    # masks = glob(os.path.join(base_dir, split, "masks", "*.tif"))
-    masks = glob(os.path.join(base_dir, split, "masks_patches", "*.tif"))
+    masks = (base_dir / split).rglob("masks_patches/*.tif")
+    masks = sorted(list(masks))
     bg = 0.0
     cell = 0.0
     for mask in masks:
@@ -40,7 +39,7 @@ def cal_mean_std():
 
     # Create the custom dataset
     base_dir = "data/patches"
-    data_df = pd.read_csv(os.path.join(base_dir, "data.csv"))
+    data_df = pd.read_csv(base_dir / "data.csv")
     train_dataset = CellDataset(data_df, "train")
 
     # Create a DataLoader with tqdm
@@ -71,7 +70,6 @@ def cal_mean_std():
 
 
 if __name__ == "__main__":
-    base_dir = os.path.join("data", "Fluo-N3DH-SIM+")
-    base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
+    base_dir = Path("data") / "Fluo-N3DH-SIM+_splitted"
     for s in ["train", "test", "val"]:
         classes_percent(base_dir, s)
