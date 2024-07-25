@@ -90,7 +90,7 @@ if __name__ == "__main__":
     # base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
     model_name = "Unet"
     model_encoder = "resnet18"
-    batch_size = 1
+    batch_size = 8
     load = False
     load_path = ""
     main(base_dir, model_name, model_encoder, batch_size, load_path, load)

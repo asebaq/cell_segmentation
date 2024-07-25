@@ -1,4 +1,3 @@
-import os
 import random
 import warnings
 import numpy as np
@@ -96,7 +95,7 @@ def cut_3d_images(image_volume, patch_size):
     return image_patches
 
 
-def train_test_val(images_paths, masks_paths, base_dir, val_sz=0.1, seed=17):
+def train_test_val(images_paths, masks_paths, base_dir, part, val_sz=0.1, seed=17):
     image_paths_train, image_paths_test, mask_paths_train, mask_paths_test = (
         train_test_split(images_paths, masks_paths, test_size=val_sz, random_state=seed)
     )
@@ -110,24 +109,31 @@ def train_test_val(images_paths, masks_paths, base_dir, val_sz=0.1, seed=17):
     print("Train size:", len(image_paths_train))
     print("Val size:", len(image_paths_val))
     print("Test size:", len(image_paths_test))
-    assert set(image_paths_train).isdisjoint(set(image_paths_val))
-    assert set(image_paths_train).isdisjoint(set(image_paths_test))
+    assert set([img.parent.name + img.stem for img in image_paths_train]).isdisjoint(
+        set([img.parent.name + img.stem for img in image_paths_val])
+    )
+    assert set([img.parent.name + img.stem for img in image_paths_train]).isdisjoint(
+        set([img.parent.name + img.stem for img in image_paths_test])
+    )
+    assert set([img.parent.name + img.stem for img in image_paths_test]).isdisjoint(
+        set([img.parent.name + img.stem for img in image_paths_val])
+    )
 
     for i in ["train", "val", "test"]:
         (base_dir / i / "images").mkdir(parents=True, exist_ok=True)
         (base_dir / i / "masks").mkdir(parents=True, exist_ok=True)
 
     for i, j in zip(image_paths_train, mask_paths_train):
-        copyfile(i, base_dir / "train" / "images" / os.path.basename(i))
-        copyfile(j, base_dir / "train" / "masks" / os.path.basename(j))
+        copyfile(i, base_dir / "train" / "images" / (part + "_" + i.name))
+        copyfile(j, base_dir / "train" / "masks" / (part + "_" + j.name))
 
     for i, j in zip(image_paths_val, mask_paths_val):
-        copyfile(i, base_dir / "val" / "images" / os.path.basename(i))
-        copyfile(j, base_dir / "val" / "masks" / os.path.basename(j))
+        copyfile(i, base_dir / "val" / "images" / (part + "_" + i.name))
+        copyfile(j, base_dir / "val" / "masks" / (part + "_" + j.name))
 
     for i, j in zip(image_paths_test, mask_paths_test):
-        copyfile(i, base_dir / "test" / "images" / os.path.basename(i))
-        copyfile(j, base_dir / "test" / "masks" / os.path.basename(j))
+        copyfile(i, base_dir / "test" / "images" / (part + "_" + i.name))
+        copyfile(j, base_dir / "test" / "masks" / (part + "_" + j.name))
 
 
 def main(base_dir):
@@ -142,7 +148,7 @@ def main(base_dir):
         masks_paths = masks_dir.glob("*.tif")
         masks_paths = sorted(list(masks_paths))
 
-        train_test_val(images_paths, masks_paths, splitted_dir)
+        train_test_val(images_paths, masks_paths, splitted_dir, part)
 
         patch_size = (32, 128, 128)
         for split in ["train", "val", "test"]:
@@ -154,8 +160,8 @@ def main(base_dir):
             (splitted_dir / split / "masks_patches").mkdir(exist_ok=True)
 
             for i in tqdm(range(len(images_paths))):
-                idx = images_paths[i].stem[-3:]
-                assert idx == masks_paths[i].stem[-3:]
+                idx = images_paths[i].stem[-7:]
+                assert idx == masks_paths[i].stem.replace("man_seg", "t")
 
                 image = io.imread(images_paths[i])
                 mask = io.imread(masks_paths[i])
