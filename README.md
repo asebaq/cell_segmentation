@@ -24,11 +24,16 @@
     pip install -r requirements.txt
    ```
 3. Split the data
-   ```
+   ```sh
     python patchify_data.py
    ```
-4. Collect the data in CSV file
+4. To remove null patches
+   ```sh
+    cp "data/Fluo-N3DH-SIM+_splitted" "data/Fluo-N3DH-SIM+_splitted_filtered"
+    python filter_patches.py
    ```
+5. Collect the data in CSV file
+   ```sh
     python collect_dataset.py
    ```
 
