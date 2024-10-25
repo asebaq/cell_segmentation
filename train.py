@@ -43,7 +43,7 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path="", load=Fal
     )
 
     # Model
-    model = CellModel(model_name, model_encoder, 1, 1)
+    model = CellModel(model_name, model_encoder, 3, 1)
 
     if load:
         checkpoint = torch.load(load_path)
@@ -86,10 +86,9 @@ def main(base_dir, model_name, model_encoder, batch_size, load_path="", load=Fal
 
 
 if __name__ == "__main__":
-    base_dir = os.path.join("data", "Fluo-N3DH-SIM+_splitted")
-    # base_dir = "/content/drive/MyDrive/Colab Notebooks/3D segmentation/Fluo-N3DH-SIM+_splitted_filtered"
+    base_dir = os.path.join("data", "Fluo-N3DH-SIM+_splitted_filtered")
     model_name = "Unet"
-    model_encoder = "resnet18"
+    model_encoder = "mit_b0"
     batch_size = 8
     load = False
     load_path = ""

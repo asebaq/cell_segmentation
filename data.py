@@ -26,6 +26,7 @@ class CellDataset(Dataset):
         img /= img.max()
         img = torch.tensor(img)
         img = img.unsqueeze(0)
+        img = img.unsqueeze(2).repeat(1, 1, 3, 1, 1)
 
         # Read mask
         msk_path = img_path.replace("image", "mask")
