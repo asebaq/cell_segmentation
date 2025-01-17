@@ -8,11 +8,12 @@ from skimage import io
 
 # Dataset class
 class CellDataset(Dataset):
-    def __init__(self, df, split):
+    def __init__(self, df, split, transform=None):
         self.df = df[df.split == split]
         self.df = self.df.reset_index(drop=True)
         self.images_paths = self.df.path.to_list()
         self.filenames = [os.path.basename(path) for path in self.df.path.to_list()]
+        self.transform = transform
 
     def __len__(self):
         return len(self.df)
@@ -23,17 +24,21 @@ class CellDataset(Dataset):
         img = io.imread(img_path)
         img = img.astype(np.float32)
         # Normalize
-        img /= img.max()
-        img = torch.tensor(img)
-        img = img.unsqueeze(0)
-        img = img.unsqueeze(2).repeat(1, 1, 3, 1, 1)
-
+        # img /= img.max()
+        # img = torch.tensor(img)
+        # img = img.unsqueeze(0)
+        # img = img.repeat(3, 1, 1, 1)
         # Read mask
         msk_path = img_path.replace("image", "mask")
         msk = io.imread(msk_path)
         msk = msk.astype(np.float32)
-        msk = torch.tensor(msk)
-        msk = msk.unsqueeze(0)
+        # msk = torch.tensor(msk)
+        # msk = msk.unsqueeze(0)
+
+        if self.transform:
+            data = {"image": img, "mask": msk}
+            data = self.transform(**data)
+            img, msk = data["image"], data["mask"]
 
         data = dict()
         data["image"] = img

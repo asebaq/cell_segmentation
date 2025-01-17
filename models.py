@@ -13,6 +13,7 @@ class CellModel(pl.LightningModule):
         encoder_name,
         in_channels,
         out_classes,
+        encoder_weights="imagenet",
         activation="sigmoid",
         **kwargs,
     ):
@@ -21,6 +22,7 @@ class CellModel(pl.LightningModule):
             arch,
             encoder_name=encoder_name,
             in_channels=in_channels,
+            encoder_weights=encoder_weights,
             classes=out_classes,
             activation=activation,
             **kwargs,
@@ -42,7 +44,8 @@ class CellModel(pl.LightningModule):
 
         # preprocessing parameteres for image
         # for image segmentation dice loss could be the best first choice
-        self.loss_fn = smp.losses.DiceLoss(mode="binary", from_logits=True)
+        self.loss_fn1 = smp.losses.DiceLoss(mode="binary", from_logits=True)
+        self.loss_fn2 = smp.losses.SoftBCEWithLogitsLoss()
 
     def forward(self, image):
         # normalize image here
@@ -66,7 +69,10 @@ class CellModel(pl.LightningModule):
 
         # Predicted mask contains logits, and loss_fn param `from_logits` is set to True
         logits_mask = self.forward(image)
-        loss = self.loss_fn(logits_mask, mask)
+        # loss = self.loss_fn(logits_mask, mask)
+        loss = 0.3 * self.loss_fn1(logits_mask, mask) + 0.7 * self.loss_fn2(
+            logits_mask, mask
+        )
 
         # Lets compute metrics for some threshold
         # first convert mask values to probabilities, then
